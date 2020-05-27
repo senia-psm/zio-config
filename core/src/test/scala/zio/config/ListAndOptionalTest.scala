@@ -70,7 +70,7 @@ object ListAndOptionalTest
 
           val actual = ZIO.fromEither(read(cListConfig from src))
 
-          val expectet = ListConfig(
+          val expected = ListConfig(
             List(
               Opt3Config(Id("1"), Some(Id("1")), Some(Id("1"))),
               Opt3Config(Id("2"), Some(Id("2")), None),
@@ -80,7 +80,7 @@ object ListAndOptionalTest
             )
           )
 
-          assertM(actual)(equalTo(expectet))
+          assertM(actual)(equalTo(expected))
         },
         testM("empty list read") {
 
@@ -96,7 +96,7 @@ object ListAndOptionalTest
 
           assertM(actual)(equalTo(expected))
         },
-        test("blablabla") {
+        test("key not exist") {
           val src = ConfigSource.fromPropertyTree(
             PropertyTree.Sequence(List(Record(Map()))),
             "src"
