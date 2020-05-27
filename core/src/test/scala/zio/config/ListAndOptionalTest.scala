@@ -96,6 +96,14 @@ object ListAndOptionalTest
 
           assertM(actual)(equalTo(expected))
         },
+        test("blablabla") {
+          val src = ConfigSource.fromPropertyTree(
+            PropertyTree.Sequence(List(Record(Map()))),
+            "src"
+          )
+          val optional: ConfigDescriptor[Option[List[String]]] = list(string("keyNotExists")).optional
+          assert(read(optional from src))(isLeft(anything))
+        },
         testM("list write read") {
           checkM(genListConfig) { p =>
             val actual = ZIO.fromEither(write(cListConfig, p).flatMap { tree =>

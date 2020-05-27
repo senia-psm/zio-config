@@ -21,7 +21,7 @@ private[config] trait ReadModule extends ConfigDescriptorModule {
 
     def loopDefault[B](path: List[Step[K]], keys: List[K], cfg: Default[B]): Res[B] =
       loopAny(path, keys, cfg.config) match {
-        case Left(error) if hasParseErrors(error) || hasConversionErrors(error) =>
+        case Left(error) if hasParseErrors(error) || hasConversionErrors(error) || hasSeverityError(error) =>
           Left(error)
         case Left(_)      => Right(cfg.value)
         case Right(value) => Right(value)
@@ -29,7 +29,7 @@ private[config] trait ReadModule extends ConfigDescriptorModule {
 
     def loopOptional[B](path: List[Step[K]], keys: List[K], cfg: Optional[B]): Res[Option[B]] =
       loopAny(path, keys, cfg.config) match {
-        case Left(error) if hasParseErrors(error) || hasConversionErrors(error) =>
+        case Left(error) if hasParseErrors(error) || hasConversionErrors(error) || hasSeverityError(error) =>
           Left(error)
         case Left(_)      => Right(None)
         case Right(value) => Right(Some(value))
@@ -172,9 +172,28 @@ private[config] trait ReadModule extends ConfigDescriptorModule {
       .lift(value)
       .getOrElse(false)
 
+  private def hasSeverityError[K](error: ReadError[K]): Boolean =
+    hasErrors(error)({ case ReadError.ForceSeverity(_, _) => true })
+
   private def hasParseErrors[K](error: ReadError[K]): Boolean =
     hasErrors(error)({ case ReadError.FormatError(_, _) => true })
 
   private def hasConversionErrors[K](error: ReadError[K]): Boolean =
     hasErrors(error)({ case ReadError.ConversionError(_, _) => true })
+
+//  private def hasErrors[K](
+//                            value: ReadError[K]
+//                          )(f: PartialFunction[ReadError[K], Boolean]): Boolean =
+//    f.orElse[ReadError[K], Boolean]({
+//      case OrErrors(errors)  => errors.exists(hasErrors(_)(f))
+//      case AndErrors(errors) => errors.exists(hasErrors(_)(f))
+//    })
+//      .lift(value)
+//      .getOrElse(false)
+//
+//  private def hasParseErrors[K](error: ReadError[K]): Boolean =
+//    hasErrors(error)({ case ReadError.FormatError(_, _) => true })
+//
+//  private def hasConversionErrors[K](error: ReadError[K]): Boolean =
+//    hasErrors(error)({ case ReadError.ConversionError(_, _) => true })
 }
